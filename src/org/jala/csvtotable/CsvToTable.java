@@ -16,10 +16,13 @@ public class CsvToTable {
 
     private String csvFile;
     private String tableName;
+    private final DBManager dbHelper;
+    
 
-    public CsvToTable(String csvFile, String tableName) {
+    public CsvToTable(String csvFile, String tableName) throws SQLException {
         this.csvFile = csvFile;
         this.tableName = tableName;
+        dbHelper = new DBManager("unittest");
     }
 
     public List<Map<String, Object>> loadCsvFile() {
@@ -29,7 +32,6 @@ public class CsvToTable {
             String line = bufferedReader.readLine();
             String[] headers = line.split(",");
             String dml = "INSERT INTO " + tableName + " VALUES(";
-            Connection connection = DriverManager.getConnection("jdbc:derby://localhost:1527/unittest");
 
             while ((line = bufferedReader.readLine()) != null) {
                 String[] row = line.split(",");
@@ -47,12 +49,11 @@ public class CsvToTable {
                 }
                 fieldQuery.deleteCharAt(fieldQuery.length() - 1);
                 fieldQuery.append(")");
-                Statement update = connection.createStatement();
-                int result = update.executeUpdate(dml.concat(fieldQuery.toString()));
+               
+                int result = dbHelper.updateSingle(dml);
                 System.out.println("updates " + result);
             }
             bufferedReader.close();
-            connection.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         } catch (IOException e) {
