@@ -17,6 +17,11 @@ public class CsvToTable {
     private String csvFile;
     private String tableName;
 
+    public CsvToTable(String csvFile, String tableName) {
+        this.csvFile = csvFile;
+        this.tableName = tableName;
+    }
+
     public List<Map<String, Object>> loadCsvFile() {
         File file = new File(csvFile);
         try {
@@ -24,25 +29,30 @@ public class CsvToTable {
             String line = bufferedReader.readLine();
             String[] headers = line.split(",");
             String dml = "INSERT INTO " + tableName + " VALUES(";
+            Connection connection = DriverManager.getConnection("jdbc:derby://localhost:1527/unittest");
 
             while ((line = bufferedReader.readLine()) != null) {
                 String[] row = line.split(",");
                 StringBuilder fieldQuery = new StringBuilder();
                 for (int i = 0; i < headers.length; i++) {
-                    String field = row[i];
-                    fieldQuery.append("\'");
-                    fieldQuery.append(row[i]);
-                    fieldQuery.append("\',");
+                    if (i == 0 ) {
+                        fieldQuery.append(row[i]);
+                        fieldQuery.append(",");
+                    } else {
+                        fieldQuery.append("\'");
+                        fieldQuery.append(row[i]);
+                        fieldQuery.append("\',");
+                    }
 
                 }
                 fieldQuery.deleteCharAt(fieldQuery.length() - 1);
                 fieldQuery.append(")");
-                Connection connection = DriverManager.getConnection("jdbc:derby://localhost/unitest");
                 Statement update = connection.createStatement();
                 int result = update.executeUpdate(dml.concat(fieldQuery.toString()));
                 System.out.println("updates " + result);
             }
             bufferedReader.close();
+            connection.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         } catch (IOException e) {
