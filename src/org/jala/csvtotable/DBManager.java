@@ -22,6 +22,7 @@ public class DBManager {
     private String user;
     private String pass;
     private Connection connection;
+    private Statement batchStatement;
 
     public DBManager(String url) throws SQLException {
         this(url, null, null);
@@ -32,12 +33,40 @@ public class DBManager {
         this.user = user;
         this.pass = pass;
         connection = init();
-        
     }
     
     public int updateSingle(String dmlQuery) throws SQLException {
         Statement statement = connection.createStatement();
         return statement.executeUpdate(dmlQuery);
+    }
+    
+    public void initBatchUpdate() throws SQLException {
+        connection.setAutoCommit(false);
+        batchStatement = connection.createStatement();
+        batchStatement.clearWarnings();
+    }
+    
+    public void executeBatchUpdate() throws SQLException {
+        batchStatement.executeBatch();
+        connection.commit();
+        batchStatement.close();
+        batchStatement = null;
+        connection.setAutoCommit(true);
+    }
+    
+    public void cancelBatchUpdate() throws SQLException {
+        connection.rollback();
+        connection.setAutoCommit(true);
+    }
+    
+    public void addUpdateStatementToBatch(String updateDml) throws SQLException {
+        if (batchStatement == null) {
+            throw new IllegalStateException("You need to call initBatchUpdate method before to add batch statements");
+        }
+        if (updateDml == null || updateDml.isEmpty()) {
+            throw new IllegalArgumentException("UpdateDml cannot be null or empty");
+        }
+        batchStatement.addBatch(updateDml);
     }
     
     private Connection init() throws SQLException {
