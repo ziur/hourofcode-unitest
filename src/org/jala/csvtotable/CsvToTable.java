@@ -41,6 +41,7 @@ public class CsvToTable {
         } catch (SQLException e) {
             try {
                 dbHelper.cancelBatchUpdate();
+                throw new CSVParserException(parser.getFile(), e);
             } catch (SQLException ex) {
                 logger.log(Level.SEVERE, null, ex);
             }

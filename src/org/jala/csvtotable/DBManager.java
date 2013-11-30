@@ -3,7 +3,6 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package org.jala.csvtotable;
 
 import java.sql.Connection;
@@ -16,49 +15,47 @@ import java.sql.Statement;
  * @author adrian
  */
 public class DBManager {
-    
+
     private static final String JDBC_TEMPLATE = "jdbc:derby://localhost/%s";
     private String dbName;
-    private String user;
-    private String pass;
     private Connection connection;
     private Statement batchStatement;
 
+    DBManager(String url, Connection con) {
+        dbName = url;
+        connection = con;
+    }
+
     public DBManager(String url) throws SQLException {
-        this(url, null, null);
-    }
-    
-    public DBManager(String url, String user, String pass) throws SQLException {
         this.dbName = url;
-        this.user = user;
-        this.pass = pass;
-        connection = init();
     }
-    
+
     public int updateSingle(String dmlQuery) throws SQLException {
-        Statement statement = connection.createStatement();
+        Statement statement = getConnection().createStatement();
         return statement.executeUpdate(dmlQuery);
     }
     
+    
+
     public void initBatchUpdate() throws SQLException {
-        connection.setAutoCommit(false);
-        batchStatement = connection.createStatement();
+        getConnection().setAutoCommit(false);
+        batchStatement = getConnection().createStatement();
         batchStatement.clearWarnings();
     }
-    
+
     public void executeBatchUpdate() throws SQLException {
         batchStatement.executeBatch();
-        connection.commit();
+        getConnection().commit();
         batchStatement.close();
         batchStatement = null;
-        connection.setAutoCommit(true);
+        getConnection().setAutoCommit(true);
     }
-    
+
     public void cancelBatchUpdate() throws SQLException {
-        connection.rollback();
-        connection.setAutoCommit(true);
+        getConnection().rollback();
+        getConnection().setAutoCommit(true);
     }
-    
+
     public void addUpdateStatementToBatch(String updateDml) throws SQLException {
         if (batchStatement == null) {
             throw new IllegalStateException("You need to call initBatchUpdate method before to add batch statements");
@@ -68,14 +65,17 @@ public class DBManager {
         }
         batchStatement.addBatch(updateDml);
     }
+
+    private Connection getConnection() throws SQLException {
+        if (connection == null) {
+            connection = init();
+        }
+        return connection;
+    }
     
     private Connection init() throws SQLException {
         String jdbc = String.format(JDBC_TEMPLATE, dbName);
-        if (user != null && pass != null) {
-            return DriverManager.getConnection(jdbc, user, pass);
-        } else {
-            return DriverManager.getConnection(jdbc);
-        }
+        return DriverManager.getConnection(jdbc);
     }
 
     public String buildQuery(String[] row, String tableName) {
@@ -95,5 +95,5 @@ public class DBManager {
         fieldQuery.append(")");
         return dml.concat(fieldQuery.toString());
     }
-    
+
 }
