@@ -25,7 +25,7 @@ public class CsvToTableTest {
      * Test of loadCsvFile method, of class CsvToTable.
      */
     @Test
-    public void testLoadCsvFile() throws SQLException {
+    public void testLoadCsvFile() throws Exception {
         String file = CsvToTable.class.getResource("resources/basic_person_data.csv").getFile();
         CsvToTable instance = new CsvToTable(file, "test");
         instance.loadCsvFile();
@@ -49,7 +49,7 @@ public class CsvToTableTest {
      * Test of loadCsvFile method, of class CsvToTable.
      */
     @Test
-    public void testLoadCsvFileSeveralPeople() throws SQLException {
+    public void testLoadCsvFileSeveralPeople() throws Exception {
         System.out.println("loadCsvFile");
         String file = CsvToTable.class.getResource("resources/several_people_data.csv").getFile();
         CsvToTable instance = new CsvToTable(file, "test");

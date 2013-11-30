@@ -25,49 +25,26 @@ public class CsvToTable {
         parser = new CSVParser(csvFile);
     }
 
-    public List<Map<String, Object>> loadCsvFile()  {
+    public List<Map<String, Object>> loadCsvFile() throws CSVParserException  {
         
         try {
-            String[] headers = parser.getHeaders();
-            String dml = "INSERT INTO " + tableName + " VALUES(";
-            
+            parser.parse();
             dbHelper.initBatchUpdate();
 
             for (String[] row : parser) {
-                String query = buildQuery(row);
+                String query = dbHelper.buildQuery(row, tableName);
                 dbHelper.addUpdateStatementToBatch(query);
             }
             dbHelper.executeBatchUpdate();
             parser.close();
-        } catch (FileNotFoundException e) {
-            logger.log(Level.SEVERE, null, e);
-        } catch (IOException e) {
-            logger.log(Level.SEVERE, null, e);
+        
         } catch (SQLException e) {
             try {
-                dbHelper.cancelBatchUpdate();  //To change body of catch statement use File | Settings | File Templates.
+                dbHelper.cancelBatchUpdate();
             } catch (SQLException ex) {
                 logger.log(Level.SEVERE, null, ex);
             }
         }
         return null;
-    }
-
-    private String buildQuery(String[] row) {
-        String dml =String.format("INSERT INTO %s VALUES(", tableName);
-        StringBuilder fieldQuery = new StringBuilder();
-        for (int i = 0; i < row.length; i++) {
-            if (i == 0) {
-                fieldQuery.append(row[i]);
-                fieldQuery.append(",");
-            } else {
-                fieldQuery.append("\'");
-                fieldQuery.append(row[i]);
-                fieldQuery.append("\',");
-            }
-        }
-        fieldQuery.deleteCharAt(fieldQuery.length() - 1);
-        fieldQuery.append(")");
-        return dml.concat(fieldQuery.toString());
     }
 }

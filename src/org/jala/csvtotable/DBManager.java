@@ -77,5 +77,23 @@ public class DBManager {
             return DriverManager.getConnection(jdbc);
         }
     }
+
+    public String buildQuery(String[] row, String tableName) {
+        String dml = String.format("INSERT INTO %s VALUES(", tableName);
+        StringBuilder fieldQuery = new StringBuilder();
+        for (int i = 0; i < row.length; i++) {
+            if (i == 0) {
+                fieldQuery.append(row[i]);
+                fieldQuery.append(",");
+            } else {
+                fieldQuery.append("'");
+                fieldQuery.append(row[i]);
+                fieldQuery.append("',");
+            }
+        }
+        fieldQuery.deleteCharAt(fieldQuery.length() - 1);
+        fieldQuery.append(")");
+        return dml.concat(fieldQuery.toString());
+    }
     
 }

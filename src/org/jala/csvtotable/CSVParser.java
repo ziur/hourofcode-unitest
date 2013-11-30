@@ -30,14 +30,19 @@ class CSVParser implements Iterable<String[]>, Iterator<String[]>{
 
     private BufferedReader reader;
 
-    public CSVParser(String file) throws FileNotFoundException {
+    public CSVParser(String file) {
         this.file = file;
-        initReader(file);
     }
 
-    private void initReader(String file) throws FileNotFoundException {
-        reader = new BufferedReader(new FileReader(file));
+    public void parse()throws CSVParserException {
+        try {
+        initReader(file);
+        getHeaders();
+        } catch (IOException ex) {
+            throw new CSVParserException(file, ex);
+        }
     }
+    
 
     public String getFile() {
         return file;
@@ -84,10 +89,16 @@ class CSVParser implements Iterable<String[]>, Iterator<String[]>{
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
-    public void close() throws IOException {
-        reader.close();
+    public void close() throws CSVParserException  {
+        try {
+            reader.close();
+        } catch (IOException ex) {
+            throw new CSVParserException(file, ex);
+        }
     }
     
-    
+    private void initReader(String file) throws FileNotFoundException {
+        reader = new BufferedReader(new FileReader(file));
+    }
 
 }
